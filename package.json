@@ -11,27 +11,37 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": ". ./.env.local && next start -p $PORT",
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^2.8.2",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@supabase/supabase-js": "^2.45.2",
     "@vercel/analytics": "^1.2.2",
     "axios": "^1.6.8",
     "axios-cookiejar-support": "^5.0.0",
+    "formik": "^2.4.6",
+    "framer-motion": "^11.3.30",
     "next": "14.1.4",
     "next-swagger-doc": "^0.4.0",
     "pino": "^8.19.0",
     "pino-pretty": "^11.0.0",
+    "qrcode": "^1.5.4",
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^9.0.1",
     "swagger-ui-react": "^5.12.3",
     "tough-cookie": "^4.1.4",
-    "user-agents": "^1.1.156"
+    "user-agents": "^1.1.156",
+    "yup": "^1.4.0",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.12",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/swagger-ui-react": "^4.18.3",
@@ -40,7 +50,9 @@
     "autoprefixer": "^10.0.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.1.4",
+    "eslint-config-prettier": "^9.1.0",
     "postcss": "^8",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
