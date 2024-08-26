@@ -4,7 +4,14 @@ import axios from "axios";
 import { Formik } from "formik";
 import { string, object } from "yup";
 import { useMemo, useState } from "react";
-import { Box, Center, Heading, Image, AspectRatio } from "@chakra-ui/react";
+import {
+  Box,
+  Center,
+  Heading,
+  Image,
+  AspectRatio,
+  Button,
+} from "@chakra-ui/react";
 import SongDataForm from "./features/SongDataForm";
 import ContactDataForm from "./features/ContactDataForm";
 import { supabase } from "@/lib/supabase";
@@ -60,13 +67,37 @@ export default function Home() {
                 wait_audio: true,
               },
             );
-            const { data, error } = await supabase
+
+            // Download the songs and upload them to Supabase
+            const downloadedSongs = await Promise.all(
+              createdSong.data.map(async ({ audio_url, id }) => {
+                const response = await axios.get<Blob>(audio_url, {
+                  responseType: "blob",
+                });
+
+                const { data, error } = await supabase.storage
+                  .from("suno")
+                  .upload(`songs/${id}.mp3`, response.data, {
+                    cacheControl: "3600",
+                    upsert: false,
+                    contentType: "audio/mpeg",
+                  });
+
+                if (error) {
+                  throw error;
+                }
+
+                return data.path;
+              }),
+            );
+
+            const { error } = await supabase
               .from("suno")
               .insert(
-                createdSong.data.map(({ audio_url }) => ({
+                downloadedSongs.map((audioUrl) => ({
                   ...songData,
                   ...values,
-                  audioUrl: audio_url,
+                  audioUrl,
                 })),
               )
               .select();
@@ -74,14 +105,16 @@ export default function Home() {
             if (error) {
               throw error;
             }
-            console.log(data);
+
             setStep(2);
-            const generatedQrCode = await qrCode.toDataURL(
-              createdSong.data[0].audio_url,
-            );
+            const { data } = supabase.storage
+              .from("suno")
+              .getPublicUrl(downloadedSongs[0]);
+
+            const generatedQrCode = await qrCode.toDataURL(data.publicUrl);
             setUrls({
               qrCode: generatedQrCode,
-              audio: createdSong.data[0].audio_url,
+              audio: data.publicUrl,
             });
           } catch (error) {
           } finally {
@@ -112,9 +145,12 @@ export default function Home() {
           />
         ) : (
           <Box px={6}>
-            <AspectRatio ratio={1} maxW="25rem" mx="auto">
+            <AspectRatio ratio={1} maxW="25rem" mx="auto" mb={6}>
               <Image alt={urls.audio} src={urls.qrCode} />
             </AspectRatio>
+            <Center>
+              <Button onClick={() => setStep(0)}>BACK</Button>
+            </Center>
           </Box>
         )}
       </Box>
