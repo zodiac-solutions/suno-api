@@ -1,6 +1,6 @@
 "use client";
 import qrCode from "qrcode";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Formik } from "formik";
 import { string, object } from "yup";
 import { useMemo, useState } from "react";
@@ -11,6 +11,7 @@ import {
   Image,
   AspectRatio,
   Button,
+  useToast,
 } from "@chakra-ui/react";
 import SongDataForm from "./features/SongDataForm";
 import ContactDataForm from "./features/ContactDataForm";
@@ -26,6 +27,7 @@ const strictRequiredString = requiredString.matches(
 );
 
 export default function Home() {
+  const toast = useToast();
   const [step, setStep] = useState(0);
   const [urls, setUrls] = useState({ qrCode: "", audio: "" });
   const songData = useUserStore((state) => ({
@@ -107,16 +109,39 @@ export default function Home() {
             }
 
             setStep(2);
-            const { data } = supabase.storage
-              .from("suno")
-              .getPublicUrl(downloadedSongs[0]);
-
-            const generatedQrCode = await qrCode.toDataURL(data.publicUrl);
+            // const { data } = supabase.storage
+            //   .from("suno")
+            //   .getPublicUrl(downloadedSongs[0]);
+            const songPageUrl = window.location.href + downloadedSongs[0];
+            const generatedQrCode = await qrCode.toDataURL(
+              // data.publicUrl
+              songPageUrl,
+            );
             setUrls({
               qrCode: generatedQrCode,
-              audio: data.publicUrl,
+              // audio: data.publicUrl,
+              audio: songPageUrl,
             });
           } catch (error) {
+            if (error instanceof AxiosError) {
+              toast({
+                status: "error",
+                title: "Error",
+                description: error.message,
+              });
+            } else if (error instanceof Error) {
+              toast({
+                status: "error",
+                title: "Error",
+                description: error.message,
+              });
+            } else {
+              toast({
+                status: "error",
+                title: "Error",
+                description: JSON.stringify(error),
+              });
+            }
           } finally {
             setLoading(false);
           }
@@ -124,7 +149,7 @@ export default function Home() {
         component: ContactDataForm,
       },
     ],
-    [setLoading, setSongData, songData],
+    [toast, setLoading, setSongData, songData],
   );
 
   return (
