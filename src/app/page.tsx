@@ -123,6 +123,7 @@ export default function Home() {
               audio: songPageUrl,
             });
           } catch (error) {
+            console.log(123, error);
             if (error instanceof AxiosError) {
               toast({
                 status: "error",

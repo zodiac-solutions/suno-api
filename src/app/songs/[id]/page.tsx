@@ -15,7 +15,7 @@ export default function Page({ params }: PageParams) {
   useEffect(() => {
     const { data } = supabase.storage
       .from("suno")
-      .getPublicUrl("songs/" + params.id);
+      .getPublicUrl("songs/" + params.id, { download: true });
 
     setDownloadUrl(data.publicUrl);
   }, [params.id]);
